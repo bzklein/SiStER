@@ -14,8 +14,10 @@ PARAMS.Nphase = Nphase; % for convenience
 % assign marker phases
 [im] = SiStER_initialize_marker_phases(Nphase,GEOM,xm,ym);
 % initialize marker plastic strain (to zero) and strain rate (to one)
-ep=zeros(size(xm));
-epNH=ep;
+if PARAMS.YNPlas
+    ep=zeros(size(xm));
+    epNH=ep;
+end
 epsIIm=ones(size(xm));
 
 % initialize marker stresses
@@ -24,6 +26,7 @@ sxym=sxxm;
 
 % initialize marker index (a unique number to identify and track each marker)
 idm=1:length(xm);
+idm=uint32(idm);
 
 % initialize temperature structure on nodes
 T=PARAMS.a0+PARAMS.a1*Y+PARAMS.a2*Y.^2+PARAMS.a3*Y.^3;

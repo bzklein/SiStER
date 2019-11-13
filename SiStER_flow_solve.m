@@ -41,7 +41,7 @@ for pit=1:PARAMS.Npicard_max
     %---------------------------------------------------------------------------------
     % Residual:  L and R are from current solution S
     %---------------------------------------------------------------------------------
-    if (exist('S','var'));
+    if (exist('S','var'))
         Res=L*S-R;
         ResL2=norm(Res,2)/norm(R,2);
         
@@ -58,8 +58,8 @@ for pit=1:PARAMS.Npicard_max
     % combination of the two 
     %---------------------------------------------------------------------------------  
     
-    if (pit >= PARAMS.pitswitch);
-       if pit==PARAMS.pitswitch; disp('switching from Picard to approx. Newton'); end;
+    if (pit >= PARAMS.pitswitch)
+       if pit==PARAMS.pitswitch; disp('switching from Picard to approx. Newton'); end
        beta=1;
        S=S-beta.*(L\Res);  % approximate Newton update, with L as approximation to Jacobian
        it_type='Newton: ';
@@ -75,7 +75,7 @@ for pit=1:PARAMS.Npicard_max
         disp(['Final residual = ' num2str(ResL2)])
         disp([num2str(pit) ' iterations converged: L2 norm of residual dropped below ' num2str( PARAMS.conv_crit_ResL2)]);
         break;
-	elseif (pit==PARAMS.Npicard_max);
+	elseif (pit==PARAMS.Npicard_max)
         disp(['Final residual = ' num2str(ResL2)])
         disp(['WARNING! ' num2str(pit) ' Picard / approx. Newton iterations failed to converge within tolerance of ' num2str( PARAMS.conv_crit_ResL2)]);
     end

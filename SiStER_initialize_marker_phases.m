@@ -6,7 +6,7 @@ function [im] = SiStER_initialize_marker_phases(Nphase,GEOM,xm,ym)
 % an alternative geometry can be added here.
 
 % assign material identity on markers
-im=zeros(size(xm));
+im=zeros(size(xm), 'uint8');
 
 
 for kk = 1:Nphase

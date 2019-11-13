@@ -10,7 +10,7 @@ function [quad,icn,jcn] = SiStER_locate_markers_in_grid(xm,ym,x,y,dx,dy)
 
 %% Determine Location of Markers and Quadrant of Element 
 M=length(xm);
-icn = zeros(1,M);
+icn = zeros(1,M, 'uint16');
 jcn = icn;
 quad = icn; % quadrant 1 = bottom-right, numbered clockwise
 

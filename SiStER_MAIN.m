@@ -55,7 +55,10 @@ for t=1:Nt % time loop
         disp('SAVING SELECTED VARIABLES TO OUTPUT FILE') 
         filename=num2str(t);
         [etam]=SiStER_interp_shear_nodes_to_markers(etas,x,y,xm,ym,icn,jcn); % to visualize viscosity on markers
-        save(filename,'X','Y','vx','vy','p','time','xm','ym','etam','rhom','BC','etan','Tm','im','idm','epsIIm','sxxm','sxym','ep','epNH','icn','jcn','qd','topo_x','topo_y')
+        save(filename,'X','Y','vx','vy','p','time','xm','ym','etam','rhom','BC','etan','Tm','im','idm','epsIIm','sxxm','sxym','icn','jcn','qd','topo_x','topo_y')
+        if PARAMS.YNPlas
+            save(filename, 'ep', 'epNH', '-append')
+        end
     end
     
     % SET ADVECTION TIME STEP BASED ON CURRENT FLOW SOLUTION

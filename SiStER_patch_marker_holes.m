@@ -1,4 +1,4 @@
-function [xm, ym, im, Ifix, mp, ep, idm, Tm, sxxm, sxym, epNH, epsIIm]=SiStER_patch_marker_holes(icn,jcn,quad,Nx,Ny,Mquad,Mquad_crit,xm,ym,x,y,dx,dy,im,ep,idm,Tm,sxxm,sxym,epNH,epsIIm)
+function [xm, ym, im, Ifix, mp, idm, Tm, sxxm, sxym, epsIIm, ep, epNH]=SiStER_patch_marker_holes(PARAMS,icn,jcn,quad,Nx,Ny,Mquad,Mquad_crit,xm,ym,x,y,dx,dy,im,idm,Tm,sxxm,sxym,epsIIm,ep,epNH)
 % function [xm, ym, im, Ifix, mp, ep, idm, Tm, sxxm, sxym, epNH, epsIIm]=SiStER_patch_marker_holes(icn,jcn,quad,Nx,Ny,Mquad,Mquad_crit,xm,ym,x,y,dx,dy,im,ep,idm,Tm,sxxm,sxym,epNH,epsIIm)
 %
 % seeds new markers in all quadrants where marker density has fallen below
@@ -9,6 +9,11 @@ function [xm, ym, im, Ifix, mp, ep, idm, Tm, sxxm, sxym, epNH, epsIIm]=SiStER_pa
 %
 % J.-A. Olive, and B.Z. Klein, 2012-2014
 
+if PARAMS.YNPlas == 1
+    fixPlasticity = true;
+else
+    fixPlasticity = false;
+end
 
 M=length(xm);
 md_crit=Mquad_crit;
@@ -45,13 +50,15 @@ qqcr = qqcr';
 xrsd=[];
 yrsd=[];
 im_fix=[]; % marker phase
-ep_fix=[]; % plastic strain
-epNH_fix=[]; % non-healed plastic strain
 te_fix=[]; % temperature
 sxx_fix=[]; % stress
 sxy_fix=[]; % stress
 sr_fix=[]; % strain rate
-   
+if fixPlasticity
+    ep_fix=[]; % plastic strain
+    epNH_fix=[]; % non-healed plastic strain
+end
+
 if ~isempty(iicr) % if there are critical quadrants
          
     for c=1:length(iicr) % go through all critical quadrants
@@ -95,25 +102,24 @@ if ~isempty(iicr) % if there are critical quadrants
 % if that was to happen, let's just draw "im" randomly
             
                        
-    if isempty((ep(icn==icell & jcn==jcell)))==1  
+    if isempty((im(icn==icell & jcn==jcell)))==1  
 
         disp('WARNING ! - EMPTY CELL - SOMETHING IS VERY WRONG...')    
-        im_fix=1+floor(rand(1,Nfix)*max(im)); % random phase number
-        ep_fix=zeros(1,Nfix);
-        epNH_fix=zeros(1,Nfix);
+        im_fix= randi(max(im),1,Nfix,'uint8');%1+floor(rand(1,Nfix)*max(im)); % random phase number
         te_fix=zeros(1,Nfix);
         sxx_fix=zeros(1,Nfix);
         sxy_fix=zeros(1,Nfix);
         sr_fix=zeros(1,Nfix);
+        if fixPlasticity
+            ep_fix=zeros(1,Nfix);
+            epNH_fix=zeros(1,Nfix);
+        end
         
     else
         
 
         % assign the average phase of the markers that are left in the cell
-        phase_fix=round(mode((im(icn==icell & jcn==jcell))));
-        % assign the greatest plastic strain of the markers that are left in the cell
-        strain_fix=max((ep(icn==icell & jcn==jcell)));
-        strainNH_fix=max((epNH(icn==icell & jcn==jcell)));
+        phase_fix=mode(im(icn==icell & jcn==jcell));
         % assign the average temperature of the markers that are left in
         % the cell
         temp_fix=mean((Tm(icn==icell & jcn==jcell)));
@@ -121,16 +127,23 @@ if ~isempty(iicr) % if there are critical quadrants
         stress_xx_fix=mean((sxxm(icn==icell & jcn==jcell)));
         stress_xy_fix=mean((sxym(icn==icell & jcn==jcell)));
         strainrate_fix=mean((epsIIm(icn==icell & jcn==jcell)));
-        
+        if fixPlasticity
+            % assign the greatest plastic strain of the markers that are left in the cell
+            strain_fix=max((ep(icn==icell & jcn==jcell)));
+            strainNH_fix=max((epNH(icn==icell & jcn==jcell)));
+        end
     end
 
-    im_fix=[im_fix phase_fix*ones(1,Nfix)];
-    ep_fix=[ep_fix strain_fix*ones(1,Nfix)];
-    epNH_fix=[epNH_fix strainNH_fix*ones(1,Nfix)];
+    im_fix=[im_fix phase_fix*ones(1,Nfix, 'uint8')];
     te_fix=[te_fix temp_fix*ones(1,Nfix)];
     sxx_fix=[sxx_fix stress_xx_fix*ones(1,Nfix)];
     sxy_fix=[sxy_fix stress_xy_fix*ones(1,Nfix)];
     sr_fix=[sr_fix strainrate_fix*ones(1,Nfix)];
+    
+    if fixPlasticity
+        ep_fix=[ep_fix strain_fix*ones(1,Nfix)];
+        epNH_fix=[epNH_fix strainNH_fix*ones(1,Nfix)];
+    end
     
     end
 
@@ -144,13 +157,15 @@ Ifix=M+1:1:M+Npatch; % total number of markers added to fix holes in critical qu
 xm(Ifix)=xrsd;
 ym(Ifix)=yrsd;
 im(Ifix)=im_fix;
-ep(Ifix)=ep_fix;
-epNH(Ifix)=epNH_fix;
 idm(Ifix)=index_fix;
 Tm(Ifix)=te_fix;
 sxxm(Ifix)=sxx_fix;
 sxym(Ifix)=sxy_fix;
 epsIIm(Ifix)=sr_fix;
+if fixPlasticity
+    ep(Ifix)=ep_fix;
+    epNH(Ifix)=epNH_fix;
+end
 
 % uncomment to display number of added markers
 %fprintf('\n%d%s%d%s\n', length(Ifix), ' markers added in ', length(iicr), ' cell quadrants.')
